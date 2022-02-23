@@ -32,7 +32,7 @@ overflow-y: scroll;
 7. /index.js
    import 'bootstrap-icons/font/bootstrap-icons.css';
 
-8.
+
 
 /_
 let dayInNumber = new Date().getDate(); // 22 (danes smo 22ga)

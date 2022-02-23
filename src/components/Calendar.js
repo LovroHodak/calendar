@@ -12,11 +12,11 @@ function getMonthName(month) {
 }
 
 // pass Number of day (0-6, Sunday - Saturday) and get back String/name of Day
-// getDayName(0) = Monday
+// getDayName(0) = Monday (MO - because slice)
 function getDayName(day) {
   const date = new Date();
   date.setDate(day - date.getDay() + date.getDate());
-  // undefined vyame od browserja jezik
+  // undefined vzame od browserja jezik
   return Intl.DateTimeFormat(undefined, { weekday: "short" })
     .format(date)
     .slice(0, 2);
@@ -30,9 +30,8 @@ export default function Calendar() {
   const [year, setYear] = useState(yearInNumber);
 
   // ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-  // ustvari 7 polj in poloopaj gatDayName
+  // ustvari 7 praznih elementov in poloopaj gatDayName
   const days = new Array(7).fill(null).map((_, day) => getDayName(day));
-  console.log(days);
 
   // logika za premikanje mesecev
   const monthUp = () => {
@@ -53,7 +52,60 @@ export default function Calendar() {
     }
   };
 
-  
+  const monthTable = useMemo(() => {
+    const firstDay = new Date(); // Wed Feb 23 2022 17:47:58 GMT+0100 (Central European Standard Time)
+    firstDay.setDate(1); // Tue Feb 01 2022 17:49:18 GMT+0100 (Central European Standard Time)
+    firstDay.setMonth(month); // Tue Feb 01 2022 17:49:58 GMT+0100 (Central European Standard Time)
+
+    const firstDayNumber = firstDay.getDay(); // 2 (ker je torek (line 61) - (0-6, ned-sob))
+
+    const lastDay = new Date(year, month + 1, 0); // Mon Feb 28 2022 00:00:00 GMT+0100 (Central European Standard Time)
+
+    const lastDayNumber = lastDay.getDay(); // 1 (ker je ponedeljek)
+
+    const howManyDaysInMonth = lastDay.getDate(); // 28
+
+    // prvi dan = 2 + stevilo dni v mescu = 28 == 30. 30 / 7 = 4,3...
+    // Math.ceil - zaokrozi na gor = 5
+    const nrOfColumns = Math.ceil((firstDayNumber + howManyDaysInMonth) / 7); // 5
+
+    // naredi 5 vrstic (nrOfColumns = 5)
+    let monthsGrid = new Array(nrOfColumns).fill(null).map((_, row) => {
+      // vsaka vrstica ima 7 dni
+      const daysOfColumn = new Array(7).fill(null).map((_, column) => {
+        // prva vrstica
+        if (row === 0) {
+          //firstDayNumber = 2, zato je 0col prazen, 1col prazen, in 2col izpolni pogoj zato 1
+          if (column >= firstDayNumber) {
+            return column - firstDayNumber + 1;
+          }
+          return null;
+        }
+        // zadnja vrstica
+        // ker se row zacne steti z 0
+        if (row === nrOfColumns - 1) {
+          // lastDayNumber = 1, zato
+          // column = 0 ergo 28 - 1 + 0 = 27
+          // column = 1 ergo 28 - 1 + 1 = 28, pogoj izpolnjen ostala polja so null
+          if (column <= lastDayNumber) {
+            return howManyDaysInMonth - lastDayNumber + column;
+          }
+          return null;
+        }
+        // ostale vrstice
+        // ker imam za row=0 ze pravilo zacnem z row = 1
+        // (1 * 7) + 1 - (2) + 0 ergo prvi datum v 1row je = 6
+        return row * 7 + 1 - firstDayNumber + column;
+      });
+      // console.log(daysOfColumn) (spodaj)
+      // [null, null, 1, 2, 3, 4, 5]
+      // [6, 7, 8, 9, 10, 11, 12]
+      // ...
+      // [27, 28, null, null, null, null, null]
+      return daysOfColumn;
+    });
+    return monthsGrid;
+  }, [month, year]);
 
   return (
     <div className="flex items-center justify-center py-8 px-4">
@@ -104,243 +156,27 @@ export default function Calendar() {
                 </tr>
               </thead>
 
-              {/* not yet here */}
+              {/* tabela z stevilkami dni v mescu */}
               <tbody>
-                <tr>
-                  <td className="pt-6">
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center"></div>
-                  </td>
-                  <td className="pt-6">
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center"></div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center"></div>
-                  </td>
-                  <td className="pt-6">
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        1
-                      </p>
-                    </div>
-                  </td>
-                  <td className="pt-6">
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        2
-                      </p>
-                    </div>
-                  </td>
-                  <td className="pt-6">
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100">
-                        3
-                      </p>
-                    </div>
-                  </td>
-                  <td className="pt-6">
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100">
-                        4
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        5
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        6
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        7
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="w-full h-full">
-                      <div className="flex items-center justify-center w-full rounded-full cursor-pointer">
-                        <a
-                          role="link"
-                          tabIndex="0"
-                          className="focus:outline-none  focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 focus:bg-indigo-500 hover:bg-indigo-500 text-base w-8 h-8 flex items-center justify-center font-medium text-white bg-indigo-700 rounded-full"
-                        >
-                          8
-                        </a>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        9
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100">
-                        10
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100">
-                        11
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        12
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        13
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        14
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        15
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        16
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100">
-                        17
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100">
-                        18
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        19
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        20
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        21
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        22
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        23
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100">
-                        24
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100">
-                        25
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        26
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        27
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        28
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        29
-                      </p>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                      <p className="text-base text-gray-500 dark:text-gray-100 font-medium">
-                        30
-                      </p>
-                    </div>
-                  </td>
-                </tr>
+                {monthTable.map((row, rowNr) => {
+                  return (
+                    <tr key={rowNr}>
+                      {row.map((value, columnNr) => {
+                        return (
+                          <td
+                            className="pt-6"
+                            key={`${value}${rowNr}${columnNr}`}
+                          >
+                            <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
+                              {value}
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+                <tr></tr>
               </tbody>
             </table>
           </div>
