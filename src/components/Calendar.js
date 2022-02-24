@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import CalendarCeil from "./CalendarCeil";
 
 // pass Number of month (0-11) and get back String/name of Month
 // getMonthName(0) = Januar
@@ -52,6 +53,26 @@ export default function Calendar() {
     }
   };
 
+  // setDay funkcija
+  let dayInNumber = new Date().getDate(); // 22 (danes smo 22ga)
+  // default nastimam da sta fromDay in toDay na zacetku enaka torej danasnji dan
+  const [fromDay, setFromDay] = useState(dayInNumber);
+  const [toDay, setToDay] = useState(dayInNumber);
+  // menjam from-to
+  const [fromOrTo, setFromOrTo] = useState("from");
+
+  const setDay = (value) => {
+    if (fromOrTo === 'from'){
+      setFromDay(value)
+      setFromOrTo('to')
+    } else {
+      setToDay(value)
+      setFromOrTo('from')
+    }
+    console.log('i am passed')
+  }
+
+  // ustvari grid
   const monthTable = useMemo(() => {
     const firstDay = new Date(); // Wed Feb 23 2022 17:47:58 GMT+0100 (Central European Standard Time)
     firstDay.setDate(1); // Tue Feb 01 2022 17:49:18 GMT+0100 (Central European Standard Time)
@@ -106,6 +127,8 @@ export default function Calendar() {
     });
     return monthsGrid;
   }, [month, year]);
+
+  
 
   return (
     <div className="flex items-center justify-center py-8 px-4">
@@ -163,14 +186,16 @@ export default function Calendar() {
                     <tr key={rowNr}>
                       {row.map((value, columnNr) => {
                         return (
-                          <td
-                            className="pt-6"
-                            key={`${value}${rowNr}${columnNr}`}
-                          >
-                            <div className="px-2 py-2 cursor-pointer flex w-full justify-center">
-                              {value}
-                            </div>
-                          </td>
+                          <CalendarCeil
+                            key={columnNr}
+                            value={value}
+                            rowNr={rowNr}
+                            columnNr={columnNr}
+                            /* i have passed, but am not yet using them */
+                            setDay={setDay}
+                            fromDay={fromDay}
+                            toDay={toDay}
+                          />
                         );
                       })}
                     </tr>
